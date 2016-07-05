@@ -134,9 +134,9 @@ class CheckHttp < Sensu::Plugin::Check::CLI
          long: '--query PAT',
          description: 'Query for a specific pattern'
 
-  option :negated_pattern,
+  option :failure_pattern,
          short: '-n PAT',
-         long: '--negated-pattern PAT',
+         long: '--failure-query PAT',
          description: "Ensure a pattern doesn't exist"
 
   option :timeout,
@@ -308,7 +308,7 @@ class CheckHttp < Sensu::Plugin::Check::CLI
     when /^2/
       if config[:redirectto]
         critical "Expected redirect to #{config[:redirectto]} but got #{res.code}" + body
-      elsif config[:pattern] or config[:negated_pattern]
+      elsif config[:pattern] or config[:failure_pattern]
         msg = "#{res.code} -"
         if config[:pattern] and res.body !~ /#{config[:pattern]}/
           critical "#{res.code}, did not find /#{config[:pattern]}/ in #{size} bytes: #{res.body[0...200]}..."
@@ -316,10 +316,10 @@ class CheckHttp < Sensu::Plugin::Check::CLI
           msg += "- found /#{config[:pattern]}/ -" if config[:pattern]
         end
 
-        if config[:negated_pattern] and res.body =~ /#{config[:negated_pattern]}/
-          critical msg + "- found /#{config[:negated_pattern]}/ in #{size} bytes: #{res.body[/#{config[:negated_pattern]}.*/]}"
+        if config[:failure_pattern] and res.body =~ /#{config[:failure_pattern]}/
+          critical msg + "- found /#{config[:failure_pattern]}/ in #{size} bytes: #{res.body[/#{config[:failure_pattern]}.*/]}"
         else
-          msg += "- did not find /#{config[:negated_pattern]}/ -" if config[:negated_pattern]
+          msg += "- did not find /#{config[:failure_pattern]}/ -" if config[:failure_pattern]
         end
 
         ok msg + "- in #{size} bytes" + body
